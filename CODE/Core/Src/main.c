@@ -25,6 +25,7 @@
 #include "ILI9341_STM32_Driver.h"
 #include "ILI9341_GFX.h"
 #include "MCP4822.h"
+#include "INA260.h"
 #include "stdio.h"
 #include "math.h"
 /* USER CODE END Includes */
@@ -72,7 +73,7 @@ static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 int fputc(int ch, FILE *f){
 	
-	//HAL_UART_Transmit(&huart1,(uint8_t *)&ch,1,10);
+	HAL_UART_Transmit(&huart1,(uint8_t *)&ch,1,10);
 	return ch;
 }
 /* USER CODE END PFP */
@@ -90,7 +91,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	char Temp_Buffer_text[40];
-	uint16_t value_dac=0;
+	uint16_t value_dac=0, ID=0;
+	float voltage=0,current=0,power=0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -127,9 +129,13 @@ int main(void)
 	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
 	//ILI9341_Fill_Screen(WHITE);
 	
+	//INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+	
 	MCP4822_DAC_Write(DAC_B, GAIN_X2, SHUTDOWN_MODE, 2000);
 	HAL_Delay(100);
-	MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, 1234);
+	MCP4822_DAC_Write(DAC_A, GAIN_X2, SHUTDOWN_MODE, 1200);
+	
+	
 //	HAL_GPIO_WritePin(DAC_CS_GPIO_Port,DAC_CS_Pin, GPIO_PIN_RESET);
 //	HAL_Delay(1);
 //	HAL_SPI_Transmit(&hspi2,abc,2,100);
@@ -148,7 +154,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		
 		HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,HAL_GPIO_ReadPin(POWER_GOOD_GPIO_Port,POWER_GOOD_Pin));
 		
 		// TEST BLINK LED & BUZZER //
@@ -173,8 +178,8 @@ int main(void)
 				//printf("he\n");
 //				sprintf(Temp_Buffer_text, "nhiet do: %5.2f", temp);
 //				ILI9341_Draw_Text(Temp_Buffer_text, 10, 20, RED, 2, WHITE);
-				HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
-				HAL_Delay(100);
+//				HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
+//				HAL_Delay(100);
 				
 //				MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, value_dac);
 //				value_dac++;
@@ -188,6 +193,29 @@ int main(void)
 
 		// TEST ADC //
 		
+		
+		// TEST INA260 //
+//		current=INA260_Current_Read();
+//		voltage=INA260_Voltage_Read();
+//		power=INA260_Power_Read();
+//		ID=INA260_ID();
+		//HAL_I2C_Mem_Read(&hi2c1,INA260_ADDRESS,MANUFACTURER_REGISTER_ADD,I2C_MEMADD_SIZE_8BIT,(uint8_t*)&ID,2,2000);
+//		sprintf(Temp_Buffer_text, "dong dien: %5.2f", current);
+//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 40, OLIVE, 2, WHITE);
+//		sprintf(Temp_Buffer_text, "dien ap: %5.2f", voltage);
+//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 70, BLUE, 2, WHITE);
+//		sprintf(Temp_Buffer_text, "cong suat: %5.2f", power);
+//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 100, PINK, 2, WHITE);
+//		sprintf(Temp_Buffer_text, "ID: %5d", ID);
+//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 120, PINK, 2, WHITE);
+		printf("dong dien: %5.2f\n", current);
+		printf("dien ap: %5.2f\n", voltage);
+		printf("cong suat: %5.2f\n", power);
+		printf("ID: %5d\n", ID);
+		INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+		HAL_Delay(300);
+		
+		// END TEST INA260 //	
 		
 		//////////////
   }
@@ -341,7 +369,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
