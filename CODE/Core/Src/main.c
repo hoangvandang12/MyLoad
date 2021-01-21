@@ -129,7 +129,7 @@ int main(void)
 //	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
 	//ILI9341_Fill_Screen(WHITE);
 	
-	//INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+	INA260_Config(AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
 	
 	MCP4822_DAC_Write(DAC_B, GAIN_X2, SHUTDOWN_MODE, 2000);
 	HAL_Delay(100);
@@ -207,11 +207,10 @@ int main(void)
 //		ILI9341_Draw_Text(Temp_Buffer_text, 10, 100, PINK, 2, WHITE);
 //		sprintf(Temp_Buffer_text, "ID: %5d", ID);
 //		ILI9341_Draw_Text(Temp_Buffer_text, 10, 120, PINK, 2, WHITE);
-		printf("dong dien: %5.2f\n", current);
-		printf("dien ap: %5.2f\n", voltage);
-		printf("cong suat: %5.2f\n", power);
-		printf("ID: %5d\n", ID);
-//		INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+		printf("dong dien: %5.4f\r\n", current);
+		printf("dien ap: %5.4f\r\n", voltage);
+		printf("cong suat: %5.4f\r\n", power);
+		printf("ID: %5d\r\n", ID);
 		HAL_Delay(300);
 		
 		// END TEST INA260 //	
@@ -437,7 +436,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

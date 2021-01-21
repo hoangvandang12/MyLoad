@@ -3,17 +3,18 @@
 static void INA260_Write(uint8_t slave_add, uint8_t register_add, uint16_t data){
 		
 	uint8_t tg=0;
-	tg=data;
+	tg=data>>8;
 	data=(data<<8)|tg;
 	HAL_I2C_Mem_Write(&hi2c1,slave_add,register_add,I2C_MEMADD_SIZE_8BIT,(uint8_t*)&data,2,2000);
 }	
 
 static void INA260_Read(uint8_t slave_add, uint8_t register_add, uint16_t *data){
 	
-	uint16_t buff=0,tg=0;
+	uint16_t buff=0;
+	uint8_t tg=0;
 	
 	HAL_I2C_Mem_Read(&hi2c1,slave_add,register_add,I2C_MEMADD_SIZE_8BIT,(uint8_t*)&buff,2,2000);
-	tg=buff;
+	tg=buff>>8;
 	buff=(buff<<8)|tg;
 	*data=buff;
 }
@@ -242,7 +243,7 @@ float INA260_Current_Read(void){
 	INA260_Read(INA260_ADDRESS,CURRENT_REGISTER_ADD,&data);
 	
 	if(data &= (1<<15))
-		return -(data*1.25/1000);
+		return -((data-32768)*1.25/1000);
 	else
 		return (data*1.25/1000);
 }
