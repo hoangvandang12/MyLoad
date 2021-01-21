@@ -124,9 +124,9 @@ int main(void)
 	HAL_GPIO_WritePin(LCD_LED_GPIO_Port,LCD_LED_Pin,on);
 	ILI9341_Init();
 	
-	ILI9341_Fill_Screen(WHITE);
-	ILI9341_Set_Rotation(SCREEN_HORIZONTAL_1);
-	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
+//	ILI9341_Fill_Screen(WHITE);
+//	ILI9341_Set_Rotation(SCREEN_HORIZONTAL_1);
+//	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
 	//ILI9341_Fill_Screen(WHITE);
 	
 	//INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
@@ -195,11 +195,10 @@ int main(void)
 		
 		
 		// TEST INA260 //
-//		current=INA260_Current_Read();
-//		voltage=INA260_Voltage_Read();
-//		power=INA260_Power_Read();
-//		ID=INA260_ID();
-		//HAL_I2C_Mem_Read(&hi2c1,INA260_ADDRESS,MANUFACTURER_REGISTER_ADD,I2C_MEMADD_SIZE_8BIT,(uint8_t*)&ID,2,2000);
+		current=INA260_Current_Read();
+		voltage=INA260_Voltage_Read();
+		power=INA260_Power_Read();
+		ID=INA260_ID();
 //		sprintf(Temp_Buffer_text, "dong dien: %5.2f", current);
 //		ILI9341_Draw_Text(Temp_Buffer_text, 10, 40, OLIVE, 2, WHITE);
 //		sprintf(Temp_Buffer_text, "dien ap: %5.2f", voltage);
@@ -212,7 +211,7 @@ int main(void)
 		printf("dien ap: %5.2f\n", voltage);
 		printf("cong suat: %5.2f\n", power);
 		printf("ID: %5d\n", ID);
-		INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+//		INA260_Config(AVR4,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
 		HAL_Delay(300);
 		
 		// END TEST INA260 //	
