@@ -90,6 +90,7 @@ int fputc(int ch, FILE *f){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	ina260_t INA260_A;
 	char Temp_Buffer_text[40];
 	uint16_t value_dac=0, ID=0;
 	float voltage=0,current=0,power=0;
@@ -129,11 +130,11 @@ int main(void)
 //	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
 	//ILI9341_Fill_Screen(WHITE);
 	
-	INA260_Config(AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
+	INA260_Config(&INA260_A,AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
 	
 	MCP4822_DAC_Write(DAC_B, GAIN_X2, SHUTDOWN_MODE, 2000);
 	HAL_Delay(100);
-	MCP4822_DAC_Write(DAC_A, GAIN_X2, SHUTDOWN_MODE, 1200);
+	MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, 2200);
 	
 	
 //	HAL_GPIO_WritePin(DAC_CS_GPIO_Port,DAC_CS_Pin, GPIO_PIN_RESET);
@@ -146,7 +147,7 @@ int main(void)
 //	HAL_Delay(1);
 //	HAL_GPIO_WritePin(DAC_LATCH_GPIO_Port,DAC_LATCH_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
-
+   
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -195,8 +196,9 @@ int main(void)
 		
 		
 		// TEST INA260 //
-		current=INA260_Current_Read();
+		
 		voltage=INA260_Voltage_Read();
+		current=INA260_Current_Read();
 		power=INA260_Power_Read();
 		ID=INA260_ID();
 //		sprintf(Temp_Buffer_text, "dong dien: %5.2f", current);
@@ -207,11 +209,12 @@ int main(void)
 //		ILI9341_Draw_Text(Temp_Buffer_text, 10, 100, PINK, 2, WHITE);
 //		sprintf(Temp_Buffer_text, "ID: %5d", ID);
 //		ILI9341_Draw_Text(Temp_Buffer_text, 10, 120, PINK, 2, WHITE);
+//		INA260_Config(&INA260_A,AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
 		printf("dong dien: %5.4f\r\n", current);
 		printf("dien ap: %5.4f\r\n", voltage);
 		printf("cong suat: %5.4f\r\n", power);
 		printf("ID: %5d\r\n", ID);
-		HAL_Delay(300);
+		HAL_Delay(1000);
 		
 		// END TEST INA260 //	
 		
@@ -233,12 +236,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -249,16 +251,16 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -367,7 +369,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -464,7 +466,6 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 

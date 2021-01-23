@@ -24,7 +24,7 @@ typedef enum{
 	AVR256,
 	AVR512,
 	AVR1024
-}AVERAGING_MODE;
+}averaging_mode_t;
 
 typedef enum{
 	
@@ -36,7 +36,7 @@ typedef enum{
 	V_CONV_2_116_MS,
 	V_CONV_4_156_MS,
 	V_CONV_8_244_MS
-}VOLTAGE_CONVERSION_TIME;
+}voltage_conversion_time_t;
 
 
 typedef enum{
@@ -49,7 +49,7 @@ typedef enum{
 	C_CONV_2_116_MS,
 	C_CONV_4_156_MS,
 	C_CONV_8_244_MS
-}CURRENT_CONVERSION_TIME;
+}current_conversion_time_t;
 
 typedef enum{
 	
@@ -61,14 +61,21 @@ typedef enum{
 	CURRENT_CONTINUTE,
 	VOLTAGE_CONTINUTE,
 	CURRENT_VOLTAGE_CONTINUTE
-}OPERATING_MODE;
+}operating_mode_t;
 
+typedef struct{
+	
+	averaging_mode_t 					AVERAGING_MODE;
+	voltage_conversion_time_t VOLTAGE_CONVERSION_TIME;
+	current_conversion_time_t CURRENT_CONVERSION_TIME;
+	operating_mode_t 					OPERATING_MODE;
+}ina260_t;
 
 extern I2C_HandleTypeDef hi2c1;
 
 static void INA260_Write(uint8_t slave_add, uint8_t register_add, uint16_t data);
 static void INA260_Read(uint8_t slave_add, uint8_t register_add, uint16_t *data);
-void INA260_Config(AVERAGING_MODE Average, VOLTAGE_CONVERSION_TIME Voltage_time, CURRENT_CONVERSION_TIME Current_time, OPERATING_MODE Mode, bool Reset);
+void INA260_Config(ina260_t *ina260, averaging_mode_t Average, voltage_conversion_time_t Voltage_time, current_conversion_time_t Current_time, operating_mode_t Mode, bool Reset);
 float INA260_Current_Read(void);
 float INA260_Voltage_Read(void);
 float INA260_Power_Read(void);
