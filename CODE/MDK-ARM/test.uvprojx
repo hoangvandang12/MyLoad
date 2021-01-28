@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;             ../Drivers/STM32F1xx_HAL_Driver/Inc;             ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;             ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;             ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;                                        ../Drivers/STM32F1xx_HAL_Driver/Inc;                                        ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;                                        ../Drivers/CMSIS/Device/ST/STM32F1xx/Include;                                        ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -409,6 +409,16 @@
               <FilePath>..\Core\Src\MCP4822.c</FilePath>
             </File>
             <File>
+              <FileName>INA260.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\INA260.c</FilePath>
+            </File>
+            <File>
+              <FileName>Delay_Timer4_Tick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\Delay_Timer4_Tick.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -424,9 +434,9 @@
               <FilePath>../Core/Src/stm32f1xx_hal_msp.c</FilePath>
             </File>
             <File>
-              <FileName>INA260.c</FileName>
+              <FileName>ENCODER.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Core\Src\INA260.c</FilePath>
+              <FilePath>..\Core\Src\ENCODER.c</FilePath>
             </File>
           </Files>
         </Group>
