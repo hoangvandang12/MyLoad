@@ -26,6 +26,8 @@
 #include "ILI9341_GFX.h"
 #include "MCP4822.h"
 #include "INA260.h"
+#include "Delay_Timer4_Tick.h"
+#include "ENCODER.h"
 #include "stdio.h"
 #include "math.h"
 /* USER CODE END Includes */
@@ -54,12 +56,16 @@ I2C_HandleTypeDef hi2c1;
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim4;
+
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-volatile char uart1_indx[1];
+//volatile char uart1_indx[1];
 float temp=0;
-uint8_t abc[2]={0x13,0xFF};
+uint16_t INA260_DAC_Value=10;
+//volatile float current=0.0, voltage=0.0, power=0.0;
+//volatile uint16_t ID=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,6 +76,7 @@ static void MX_ADC1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 int fputc(int ch, FILE *f){
 	
@@ -90,10 +97,7 @@ int fputc(int ch, FILE *f){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	ina260_t INA260_A;
-	char Temp_Buffer_text[40];
-	uint16_t value_dac=0, ID=0;
-	float voltage=0,current=0,power=0;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,7 +113,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -119,35 +123,39 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_I2C1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-	HAL_UART_Receive_IT(&huart1, (uint8_t *) uart1_indx, 1);
+	float current=0.0, voltage=0.0, power=0.0;
+	uint16_t ID=0;
+	ina260_t INA260_A;
+	tick_timer_t Tick, Tick1, Tick2;
+	char Temp_Buffer_text[30];
+	
+	Tick_Timer_Init();
+	
+//	char Temp_Buffer_text[40];
+	
+//	HAL_UART_Receive_IT(&huart1, (uint8_t *) uart1_indx, 1);
 	HAL_ADC_Start_IT(&hadc1);
+	
 	HAL_GPIO_WritePin(LCD_LED_GPIO_Port,LCD_LED_Pin,on);
+	HAL_Delay(100);
 	ILI9341_Init();
-	
-//	ILI9341_Fill_Screen(WHITE);
-//	ILI9341_Set_Rotation(SCREEN_HORIZONTAL_1);
-//	ILI9341_Draw_Text("FPS TEST, 40 loop 2 screens", 10, 10, BLACK, 1, WHITE);
-	//ILI9341_Fill_Screen(WHITE);
-	
-	INA260_Config(&INA260_A,AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
-	
+//	
+	ILI9341_Fill_Screen(WHITE);
+	ILI9341_Set_Rotation(SCREEN_HORIZONTAL_1);
+
+	INA260_Config(&INA260_A, AVR4, V_CONV_2_116_MS, C_CONV_1_1_MS, CURRENT_VOLTAGE_CONTINUTE, false);
+
 	MCP4822_DAC_Write(DAC_B, GAIN_X2, SHUTDOWN_MODE, 2000);
 	HAL_Delay(100);
-	MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, 2200);
+	MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, 4000);
+	HAL_Delay(100);
 	
-	
-//	HAL_GPIO_WritePin(DAC_CS_GPIO_Port,DAC_CS_Pin, GPIO_PIN_RESET);
-//	HAL_Delay(1);
-//	HAL_SPI_Transmit(&hspi2,abc,2,100);
-//	HAL_Delay(1);
-//	HAL_GPIO_WritePin(DAC_CS_GPIO_Port,DAC_CS_Pin, GPIO_PIN_SET);
-//	HAL_Delay(1);
-//	HAL_GPIO_WritePin(DAC_LATCH_GPIO_Port,DAC_LATCH_Pin, GPIO_PIN_RESET);
-//	HAL_Delay(1);
-//	HAL_GPIO_WritePin(DAC_LATCH_GPIO_Port,DAC_LATCH_Pin, GPIO_PIN_SET);
+
+	INA260_Mask_Config(&INA260_A,ALERT_OFF, ALERT_CONVERSION_READY_ON, ACTIVE_LOW, TRANSPARENT);
   /* USER CODE END 2 */
-   
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -197,24 +205,48 @@ int main(void)
 		
 		// TEST INA260 //
 		
-		voltage=INA260_Voltage_Read();
-		current=INA260_Current_Read();
-		power=INA260_Power_Read();
-		ID=INA260_ID();
-//		sprintf(Temp_Buffer_text, "dong dien: %5.2f", current);
-//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 40, OLIVE, 2, WHITE);
-//		sprintf(Temp_Buffer_text, "dien ap: %5.2f", voltage);
-//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 70, BLUE, 2, WHITE);
-//		sprintf(Temp_Buffer_text, "cong suat: %5.2f", power);
-//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 100, PINK, 2, WHITE);
-//		sprintf(Temp_Buffer_text, "ID: %5d", ID);
-//		ILI9341_Draw_Text(Temp_Buffer_text, 10, 120, PINK, 2, WHITE);
-//		INA260_Config(&INA260_A,AVR16,V_CONV_1_1_MS,C_CONV_1_1_MS,CURRENT_VOLTAGE_CONTINUTE,false);
-		printf("dong dien: %5.4f\r\n", current);
-		printf("dien ap: %5.4f\r\n", voltage);
-		printf("cong suat: %5.4f\r\n", power);
-		printf("ID: %5d\r\n", ID);
-		HAL_Delay(1000);
+
+
+//
+		
+//		if(Tick_Timer_Is_Over_Ms(Tick1,100)){
+			
+			if(!HAL_GPIO_ReadPin(INA260_ALERT_GPIO_Port,INA260_ALERT_Pin)){
+				
+				INA260_Read(INA260_ADDRESS,MASK_EN_REGISTER_ADD,&ID);
+				current=INA260_Current_Read();
+				voltage=INA260_Voltage_Read();
+				ID=INA260_ID();
+				HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
+			}
+			
+//		}
+		
+		if(Tick_Timer_Is_Over_Ms(Tick1,10)){
+			
+			MCP4822_DAC_Write(DAC_A, GAIN_X2, ACTIVE_MODE, INA260_DAC_Value);
+		}
+
+
+		if(Tick_Timer_Is_Over_Ms(Tick,2000)){
+			
+			power=voltage*current;
+//			printf("dong dien: %5.4f\r\n", current);
+//			printf("dien ap: %5.4f\r\n", voltage);
+//			printf("cong suat: %5.4f\r\n", power);
+//			printf("NHIET DO: %5.4f\r\n", temp);
+//			printf("ID: %5d\r\n\n\n", ID);
+		sprintf(Temp_Buffer_text, "dong dien: %5.4f", current);
+		ILI9341_Draw_Text(Temp_Buffer_text, 10, 40, OLIVE, 2, WHITE);
+		sprintf(Temp_Buffer_text, "dien ap: %5.4f", voltage);
+		ILI9341_Draw_Text(Temp_Buffer_text, 10, 70, BLUE, 2, WHITE);
+		sprintf(Temp_Buffer_text, "cong suat: %5.4f", power);
+		ILI9341_Draw_Text(Temp_Buffer_text, 10, 100, PINK, 2, WHITE);
+		sprintf(Temp_Buffer_text, "Nhiet Do: %5.4f", temp);
+		ILI9341_Draw_Text(Temp_Buffer_text, 10, 130, PINK, 2, WHITE);
+		sprintf(Temp_Buffer_text, "Gate: %6d mV", INA260_DAC_Value*2);
+		ILI9341_Draw_Text(Temp_Buffer_text, 10, 160, RED, 2, WHITE);	
+		}
 		
 		// END TEST INA260 //	
 		
@@ -241,7 +273,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -255,12 +287,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV8;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -369,7 +401,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -423,6 +455,51 @@ static void MX_SPI2_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 31;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65535;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -438,7 +515,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -508,11 +585,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(DAC_CS_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : POWER_GOOD_Pin */
-  GPIO_InitStruct.Pin = POWER_GOOD_Pin;
+  /*Configure GPIO pins : POWER_GOOD_Pin ENCODER_PB_Pin ENCODER_BT_Pin INA260_ALERT_Pin */
+  GPIO_InitStruct.Pin = POWER_GOOD_Pin|ENCODER_PB_Pin|ENCODER_BT_Pin|INA260_ALERT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(POWER_GOOD_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BUZZER_Pin */
   GPIO_InitStruct.Pin = BUZZER_Pin;
@@ -520,6 +597,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ENCODER_PA_Pin */
+  GPIO_InitStruct.Pin = ENCODER_PA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ENCODER_PA_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 }
 
@@ -544,6 +631,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	}
 
 }
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	
+	ENCODER_EC_11(&INA260_DAC_Value,GPIO_Pin);
+}
+
 /* USER CODE END 4 */
 
 /**

@@ -1,6 +1,6 @@
 #include "INA260.h"
 
-//int16_t check=0;
+int16_t check=0;
 
 static void INA260_Write(uint8_t slave_add, uint8_t register_add, uint16_t data){
 		
@@ -10,7 +10,7 @@ static void INA260_Write(uint8_t slave_add, uint8_t register_add, uint16_t data)
 	HAL_I2C_Mem_Write(&hi2c1,slave_add,register_add,I2C_MEMADD_SIZE_8BIT,(uint8_t*)&data,2,2000);
 }	
 
-static void INA260_Read(uint8_t slave_add, uint8_t register_add, uint16_t *data){
+void INA260_Read(uint8_t slave_add, uint8_t register_add, uint16_t *data){
 	
 	uint16_t buff=0;
 	uint8_t tg=0;
@@ -243,15 +243,80 @@ void INA260_Config(ina260_t *INA260, averaging_mode_t Average, voltage_conversio
 	
 }
 
+
+void INA260_Mask_Config(ina260_t *INA260, mask_alert_select_t ALERT_SELECT, mask_conversion_ready_t CONVERSION_READY, mask_polarity_t POLARITY, mask_latch_t LATCH_ENABLE){
+	
+	uint16_t data=0;
+	
+	INA260->MASK_ALERT_SELECT=ALERT_SELECT;
+	INA260->MASK_CONVERSION_READY=CONVERSION_READY;
+	INA260->MASK_POLARITY=POLARITY;
+	INA260->MASK_LATCH=LATCH_ENABLE;
+	
+	//--------------CONVERSION READY CONFIG----------------------//
+	if(INA260->MASK_CONVERSION_READY==ALERT_CONVERSION_READY_ON)
+		data |= (1<<10);
+	//--------------END CONVERSION READY CONFIG------------------//
+	
+	//--------------ALERT CONFIG----------------------//
+	switch(INA260->MASK_ALERT_SELECT){
+	
+		case OVER_CURRENT_LIMIT:
+			data |= (1<<15);
+			break;
+		case UNDER_CURRENT_LIMIT:
+			data |= (1<<14);
+			break;
+		case BUS_VOLTAGE_OVER_VOLTAGE:
+			data |= (1<<13);
+			break;
+		case BUS_VOLTAGE_UNDER_VOLTAGE:
+			data |= (1<<12);
+			break;
+		case POWER_OVER_LIMIT:
+			data |= (1<<11);
+			break;
+		default: 
+			break;
+	}
+	//--------------END ALERT CONFIG------------------//
+	
+	//--------------ALERT POLARITY CONFIG----------------------//
+	if(INA260->MASK_POLARITY==ACTIVE_HIGH)
+		data |= (1<<1);
+	//--------------END ALERT POLARITY CONFIG------------------//
+	
+		//--------------ALERT LATCH CONFIG----------------------//
+	if(INA260->MASK_LATCH==LATCH_ON)
+		data |= (1<<0);
+	//--------------END ALERT LATCH CONFIG--------------------//
+	check=data;
+	INA260_Write(INA260_ADDRESS,MASK_EN_REGISTER_ADD,data);
+}
+
+
+void INA260_Mask_Read_CallBack(void (*EVENT_FUNCTION)(void), void(*CONVERSION_READY)(void), void(MATH_OVERFLOW)(void)){
+	
+	uint16_t data=0;
+	INA260_Read(INA260_ADDRESS,MASK_EN_REGISTER_ADD,&data);
+	
+	if(data & (1<<4))
+		EVENT_FUNCTION();
+	if(data & (1<<3))
+		CONVERSION_READY();
+	if(data & (1<<2))
+		MATH_OVERFLOW();
+}
+
 float INA260_Current_Read(void){
 	
 	uint16_t data=0;
 	
 	INA260_Read(INA260_ADDRESS,CURRENT_REGISTER_ADD,&data);
 	
-//	if(data & (1<<15))
-//		return (data-65535.0);
-//	else
+	if(data & (1<<15))
+		return (0.0);
+	else
 		return (data*1.25/1000.0);
 }
 

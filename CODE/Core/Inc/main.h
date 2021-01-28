@@ -92,10 +92,19 @@ void Error_Handler(void);
 #define DAC_MOSI_GPIO_Port GPIOB
 #define BUZZER_Pin GPIO_PIN_15
 #define BUZZER_GPIO_Port GPIOA
+#define ENCODER_PB_Pin GPIO_PIN_3
+#define ENCODER_PB_GPIO_Port GPIOB
+#define ENCODER_PA_Pin GPIO_PIN_4
+#define ENCODER_PA_GPIO_Port GPIOB
+#define ENCODER_PA_EXTI_IRQn EXTI4_IRQn
+#define ENCODER_BT_Pin GPIO_PIN_5
+#define ENCODER_BT_GPIO_Port GPIOB
 #define INA260_SCL_Pin GPIO_PIN_6
 #define INA260_SCL_GPIO_Port GPIOB
 #define INA260_SDA_Pin GPIO_PIN_7
 #define INA260_SDA_GPIO_Port GPIOB
+#define INA260_ALERT_Pin GPIO_PIN_8
+#define INA260_ALERT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
