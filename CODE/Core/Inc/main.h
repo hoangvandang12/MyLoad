@@ -99,6 +99,7 @@ void Error_Handler(void);
 #define ENCODER_PA_EXTI_IRQn EXTI4_IRQn
 #define ENCODER_BT_Pin GPIO_PIN_5
 #define ENCODER_BT_GPIO_Port GPIOB
+#define ENCODER_BT_EXTI_IRQn EXTI9_5_IRQn
 #define INA260_SCL_Pin GPIO_PIN_6
 #define INA260_SCL_GPIO_Port GPIOB
 #define INA260_SDA_Pin GPIO_PIN_7

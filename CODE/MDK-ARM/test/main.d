@@ -34,6 +34,7 @@ test\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 test\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 test\main.o: ../Core/Inc/ILI9341_STM32_Driver.h
 test\main.o: ../Core/Inc/ILI9341_GFX.h
+test\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 test\main.o: ../Core/Inc/MCP4822.h
 test\main.o: ../Core/Inc/INA260.h
 test\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
@@ -41,3 +42,5 @@ test\main.o: ../Core/Inc/Delay_Timer4_Tick.h
 test\main.o: ../Core/Inc/ENCODER.h
 test\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 test\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+test\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+test\main.o: ../Core/Inc/PID.h

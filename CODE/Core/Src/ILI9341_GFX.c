@@ -128,8 +128,8 @@ void ILI9341_Draw_Hollow_Rectangle_Coord(uint16_t X0, uint16_t Y0, uint16_t X1, 
 {
 	uint16_t 	X_length = 0;
 	uint16_t 	Y_length = 0;
-	uint8_t		Negative_X = 0;
-	uint8_t 	Negative_Y = 0;
+	uint16_t		Negative_X = 0;
+	uint16_t 	Negative_Y = 0;
 	float 		Calc_Negative = 0;
 	
 	Calc_Negative = X1 - X0;
@@ -220,13 +220,141 @@ void ILI9341_Draw_Filled_Rectangle_Coord(uint16_t X0, uint16_t Y0, uint16_t X1, 
 	ILI9341_Draw_Rectangle(X0_true, Y0_true, X_length, Y_length, Colour);	
 }
 
+/////////////////////////////////////////////
+void LCD_Draw_Pixel_Mem(uint16_t X, uint16_t Y, uint16_t colour, uint8_t *lcd_buff, uint8_t length_X){
+	
+	lcd_buff[(X + length_X*Y)*2]=colour>>8;
+	lcd_buff[(X + length_X*Y)*2+1]=colour;
+}
+
+//void LCD_Draw_Char_Mem(uint8_t ch, uint8_t *lcd_buff, uint16_t colour, uint16_t background, font_type_t Font){
+//	
+//		uint8_t 	ascii_char=0;
+//		uint8_t HIGHT=0, WIDTH=0;
+//		
+//		ascii_char = ch;
+//		
+//    if (ascii_char < ' ') {
+//        ascii_char = 0;
+//    } else {
+//        ascii_char -= 32;
+//		}
+//   	
+//		if(Font == font_11_18){
+//			
+//			HIGHT=18;
+//			WIDTH=11;
+//		}
+//		else{
+//			
+//			HIGHT=26;
+//			WIDTH=16;
+//		}
+//		
+//		
+////		for(uint16_t k = 0; k<CHAR_HEIGHT; k++)
+////		{
+////		temp[k] = font_16x26[function_char][k];
+////		}
+//		
+//    // Draw pixels
+////		ILI9341_Draw_Rectangle(X, Y, CHAR_WIDTH*Size, CHAR_HEIGHT*Size, Background_Colour);
+//    for (uint8_t j=0; j<CHAR_HEIGHT; j++) {
+//        for (uint8_t i=0; i<CHAR_WIDTH; i++) {
+//					
+//					if(Font == font_11_18){
+//						
+//						if (font_11x18[ascii_char][j] & (0x8000>>i)) {			
+//              LCD_Draw_Pixel_Mem(i, j, colour,lcd_buff);
+//            }
+//						else
+//							LCD_Draw_Pixel_Mem(i+col, j, BLACK);
+//					}
+//					else{
+//						
+
+//					}
+//            
+//        }
+//    }
+//	
+//}
+
+void LCD_Draw_Text(uint8_t X, uint16_t Y, const char* Text, uint8_t length, uint16_t colour, uint16_t background, font_type_t Font){
+
+	uint8_t *lcd_buff,HEIGHT=0, WIDTH=0;
+	uint8_t ch;
+	uint16_t size=0, space=0;
+	
+	if(Font == font_11_18){
+		HEIGHT=18;
+		WIDTH=11;
+		size=11*length*18*2; 
+	}
+	else{
+		HEIGHT=26;
+		WIDTH=16;
+		size=16*length*26*2;
+	}
+	
+	lcd_buff=(uint8_t*)malloc(size);
+		
+	while (*Text) {
+		
+		ch=*Text++;
+		
+		if(Font == font_11_18){
+			
+			for(uint8_t j=0; j<HEIGHT; j++){	
+				
+				for(uint8_t i=0; i<WIDTH; i++){
+				
+					if(font_11x18[ch-32][j] & (0x8000>>i)) {			
+						LCD_Draw_Pixel_Mem(i+space, j, colour,lcd_buff,length*WIDTH);
+					}
+					else
+						LCD_Draw_Pixel_Mem(i+space, j, background,lcd_buff,length*WIDTH);
+				}
+			}							
+		}
+		else{
+			
+			for(uint8_t j=0; j<HEIGHT; j++){	
+				
+				for(uint8_t i=0; i<WIDTH; i++){	
+					
+					if(font_16x26[ch-32][j] & (0x8000>>i)) {			
+						LCD_Draw_Pixel_Mem(i+space, j, colour,lcd_buff,length*WIDTH);
+					}
+					else
+						LCD_Draw_Pixel_Mem(i+space, j, background,lcd_buff,length*WIDTH);		
+				}
+			}
+		}					
+		
+		space += WIDTH;
+	}
+	
+	ILI9341_Set_Address(X,Y,X+length*WIDTH-1,Y+25);
+	HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);	
+	HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_PIN, GPIO_PIN_RESET);
+
+//	for(uint16_t i=0;i<size;i++)
+//		lcd_buff[i]=123;
+	
+	HAL_SPI_Transmit(&hspi1, lcd_buff, size,100);
+
+	
+	free(lcd_buff);
+}
+
 /*Draws a character (fonts imported from fonts.h) at X,Y location with specified font colour, size and Background colour*/
 /*See fonts.h implementation of font on what is required for changing to a different font when switching fonts libraries*/
-void ILI9341_Draw_Char(char Character, uint8_t X, uint8_t Y, uint16_t Colour, uint16_t Size, uint16_t Background_Colour) 
+void ILI9341_Draw_Char(char Character, uint16_t X, uint16_t Y, uint16_t Colour, uint16_t Size, uint16_t Background_Colour) 
 {
-		uint8_t 	function_char;
-    uint8_t 	i,j;
-		
+		uint16_t 	function_char;
+    uint16_t 	i,j;
+	
 		function_char = Character;
 		
     if (function_char < ' ') {
@@ -235,33 +363,35 @@ void ILI9341_Draw_Char(char Character, uint8_t X, uint8_t Y, uint16_t Colour, ui
         function_char -= 32;
 		}
    	
-		char temp[CHAR_WIDTH];
-		for(uint8_t k = 0; k<CHAR_WIDTH; k++)
+		uint16_t temp[CHAR_HEIGHT];
+		for(uint16_t k = 0; k<CHAR_HEIGHT; k++)
 		{
-		temp[k] = font[function_char][k];
+		temp[k] = font_16x26[function_char][k];
 		}
 		
     // Draw pixels
 		ILI9341_Draw_Rectangle(X, Y, CHAR_WIDTH*Size, CHAR_HEIGHT*Size, Background_Colour);
-    for (j=0; j<CHAR_WIDTH; j++) {
-        for (i=0; i<CHAR_HEIGHT; i++) {
-            if (temp[j] & (1<<i)) {			
+    for (j=0; j<CHAR_HEIGHT; j++) {
+        for (i=0; i<CHAR_WIDTH; i++) {
+            if (temp[j] & (0x8000>>i)) {			
 							if(Size == 1)
 							{
-              ILI9341_Draw_Pixel(X+j, Y+i, Colour);
+              ILI9341_Draw_Pixel(X+i, Y+j, Colour);
 							}
 							else
 							{
-							ILI9341_Draw_Rectangle(X+(j*Size), Y+(i*Size), Size, Size, Colour);
+							ILI9341_Draw_Rectangle(X+(i*Size), Y+(j*Size), Size, Size, Colour);
 							}
-            }						
+            }
+//						else
+//							ILI9341_Draw_Pixel(X+i, Y+j, BLACK);
         }
     }
 }
 
 /*Draws an array of characters (fonts imported from fonts.h) at X,Y location with specified font colour, size and Background colour*/
 /*See fonts.h implementation of font on what is required for changing to a different font when switching fonts libraries*/
-void ILI9341_Draw_Text(const char* Text, uint8_t X, uint8_t Y, uint16_t Colour, uint16_t Size, uint16_t Background_Colour)
+void ILI9341_Draw_Text(const char* Text, uint16_t X, uint16_t Y, uint16_t Colour, uint16_t Size, uint16_t Background_Colour)
 {
     while (*Text) {
         ILI9341_Draw_Char(*Text++, X, Y, Colour, Size, Background_Colour);

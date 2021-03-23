@@ -69,23 +69,23 @@ ARM Macro Assembler    Page 1
 ARM Macro Assembler    Page 2 
 
 
-   44 00000400 00000200 
+   44 00000400 00002710 
                        Heap_Size
-                               EQU              0x200
+                               EQU              0x2710
    45 00000400         
    46 00000400                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
 3
    47 00000000         __heap_base
    48 00000000         Heap_Mem
                                SPACE            Heap_Size
-   49 00000200         __heap_limit
-   50 00000200         
-   51 00000200                 PRESERVE8
-   52 00000200                 THUMB
-   53 00000200         
-   54 00000200         
-   55 00000200         ; Vector Table Mapped to Address 0 at Reset
-   56 00000200                 AREA             RESET, DATA, READONLY
+   49 00002710         __heap_limit
+   50 00002710         
+   51 00002710                 PRESERVE8
+   52 00002710                 THUMB
+   53 00002710         
+   54 00002710         
+   55 00002710         ; Vector Table Mapped to Address 0 at Reset
+   56 00002710                 AREA             RESET, DATA, READONLY
    57 00000000                 EXPORT           __Vectors
    58 00000000                 EXPORT           __Vectors_End
    59 00000000                 EXPORT           __Vectors_Size
@@ -465,9 +465,9 @@ Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=test\startup_stm32f103xb.d -otest\startup_stm32f103xb.o -I.\RTE\_t
 est -IC:\Users\hoang\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include
  -IC:\Users\hoang\AppData\Local\Arm\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Inclu
-de --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 531" --p
-redefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --predefine="_RTE_ SE
-TA 1" --list=startup_stm32f103xb.lst startup_stm32f103xb.s
+de --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 527" --p
+redefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --list=startup_stm32f
+103xb.lst startup_stm32f103xb.s
 
 
 
@@ -530,7 +530,7 @@ Symbol: __heap_base
    Uses
       At line 285 in file startup_stm32f103xb.s
 Comment: __heap_base used once
-__heap_limit 00000200
+__heap_limit 00002710
 
 Symbol: __heap_limit
    Definitions
@@ -1126,7 +1126,7 @@ Symbol: WWDG_IRQHandler
 ARM Macro Assembler    Page 1 Alphabetic symbol ordering
 Absolute symbols
 
-Heap_Size 00000200
+Heap_Size 00002710
 
 Symbol: Heap_Size
    Definitions
