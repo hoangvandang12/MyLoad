@@ -90,6 +90,8 @@ void Error_Handler(void);
 #define POWER_GOOD_GPIO_Port GPIOB
 #define DAC_MOSI_Pin GPIO_PIN_15
 #define DAC_MOSI_GPIO_Port GPIOB
+#define FAN_Pin GPIO_PIN_8
+#define FAN_GPIO_Port GPIOA
 #define BUZZER_Pin GPIO_PIN_15
 #define BUZZER_GPIO_Port GPIOA
 #define ENCODER_PB_Pin GPIO_PIN_3
